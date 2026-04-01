@@ -1,0 +1,118 @@
+# ══════════════════════════════════════════════════════════════
+# AI Prompt Firewall — Attack Signature Rules
+# ══════════════════════════════════════════════════════════════
+# Each rule: pattern (regex), category, severity (0.0-1.0), description.
+# Patterns are case-insensitive by default.
+# Add new rules here — the engine hot-loads all YAML in this directory.
+
+rules:
+
+  # ── Direct Prompt Injection ────────────────────────────────
+  - id: PI-001
+    name: "Ignore previous instructions"
+    pattern: "ignore\\s+(all\\s+)?(previous|prior|above|earlier)\\s+(instructions|prompts|rules|directives)"
+    category: prompt_injection
+    severity: 0.95
+    description: "Classic direct injection attempting to override system prompt"
+
+  - id: PI-002
+    name: "New instructions override"
+    pattern: "(new|updated|real|actual)\\s+instructions[:\\s]"
+    category: prompt_injection
+    severity: 0.85
+    description: "Attempts to replace existing instructions with attacker-supplied ones"
+
+  - id: PI-003
+    name: "You are now"
+    pattern: "(you\\s+are\\s+now|from\\s+now\\s+on\\s+you\\s+are|act\\s+as\\s+if\\s+you\\s+are|pretend\\s+you\\s+are)"
+    category: role_manipulation
+    severity: 0.80
+    description: "Role reassignment attack"
+
+  - id: PI-004
+    name: "Do anything now (DAN)"
+    pattern: "(DAN|do\\s+anything\\s+now|jailbroken\\s+mode|developer\\s+mode|god\\s+mode)"
+    category: jailbreak
+    severity: 0.95
+    description: "DAN-family jailbreak"
+
+  - id: PI-005
+    name: "Disregard safety"
+    pattern: "(disregard|bypass|override|disable|turn\\s+off)\\s+(safety|content|ethical|moderation)\\s*(filters?|guidelines?|restrictions?|policies?|rules?)?"
+    category: jailbreak
+    severity: 0.90
+    description: "Explicit attempt to disable safety controls"
+
+  # ── System Prompt Extraction ───────────────────────────────
+  - id: SPE-001
+    name: "Repeat system prompt"
+    pattern: "(repeat|show|display|reveal|print|output|echo)\\s+(your|the)?\\s*(system|initial|original|hidden|secret)\\s*(prompt|instructions|message|directive)"
+    category: system_prompt_extraction
+    severity: 0.90
+    description: "Attempting to extract the system prompt"
+
+  - id: SPE-002
+    name: "What are your instructions"
+    pattern: "what\\s+(are|were)\\s+your\\s+(original|initial|system|secret|hidden)?\\s*(instructions|rules|guidelines|directives|prompt)"
+    category: system_prompt_extraction
+    severity: 0.85
+    description: "Social engineering the system prompt"
+
+  - id: SPE-003
+    name: "Begin with system prompt"
+    pattern: "(begin|start)\\s+(your\\s+)?(response|reply|answer)\\s+with\\s+(the\\s+)?(system|original|first)"
+    category: system_prompt_extraction
+    severity: 0.85
+    description: "Tricking model into leading with system prompt"
+
+  # ── Encoding / Obfuscation Attacks ─────────────────────────
+  - id: ENC-001
+    name: "Base64 injection"
+    pattern: "(decode|interpret|execute|run|eval)\\s+(this\\s+)?(base64|b64|encoded)"
+    category: encoding_attack
+    severity: 0.80
+    description: "Using encoding to bypass text-based filters"
+
+  - id: ENC-002
+    name: "Hex/Unicode smuggling"
+    pattern: "(\\\\x[0-9a-fA-F]{2}){4,}|(%[0-9a-fA-F]{2}){4,}|(\\\\u[0-9a-fA-F]{4}){3,}"
+    category: encoding_attack
+    severity: 0.75
+    description: "Hex or unicode escape sequences used to obfuscate payload"
+
+  # ── Role Manipulation ──────────────────────────────────────
+  - id: RM-001
+    name: "Hypothetical scenario bypass"
+    pattern: "(hypothetically|in\\s+a\\s+fictional|imagine\\s+you\\s+are|let'?s\\s+pretend|roleplay\\s+as|for\\s+a\\s+story)"
+    category: role_manipulation
+    severity: 0.65
+    description: "Using fictional framing to bypass guardrails"
+
+  - id: RM-002
+    name: "Opposite day"
+    pattern: "(opposite\\s+day|respond\\s+opposite|say\\s+the\\s+opposite|reverse\\s+your\\s+rules)"
+    category: role_manipulation
+    severity: 0.80
+    description: "Inversion attack on model behavior"
+
+  - id: RM-003
+    name: "Grandma exploit"
+    pattern: "(my\\s+(dead\\s+)?grandm(a|other)\\s+(used\\s+to|would|always)\\s+(tell|read|say|recite))"
+    category: jailbreak
+    severity: 0.70
+    description: "Emotional manipulation to extract restricted content"
+
+  # ── Multi-turn / Chained Injection Markers ─────────────────
+  - id: MT-001
+    name: "Delimiter injection"
+    pattern: "(\\[INST\\]|\\[/INST\\]|<\\|im_start\\|>|<\\|im_end\\|>|<<SYS>>|<\\/SYS>>|###\\s*System|###\\s*Human|###\\s*Assistant)"
+    category: prompt_injection
+    severity: 0.95
+    description: "Raw chat template delimiters injected to manipulate turn structure"
+
+  - id: MT-002
+    name: "Markdown/XML injection"
+    pattern: "(```system|<system>|<instructions>|<secret>|</?(user|assistant|system)_prompt>)"
+    category: prompt_injection
+    severity: 0.85
+    description: "Structured markup injection to create fake message boundaries"

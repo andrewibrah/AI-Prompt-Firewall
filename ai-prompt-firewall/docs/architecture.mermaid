@@ -1,0 +1,50 @@
+```mermaid
+flowchart TB
+    subgraph Client
+        A[Client Application]
+    end
+
+    subgraph Firewall["AI Prompt Firewall (FastAPI)"]
+        direction TB
+        B["/v1/chat/completions\n(Proxy Endpoint)"]
+        
+        subgraph Detection["Detection Pipeline"]
+            direction LR
+            C["Rule Engine\n(YAML Regex)"]
+            D["PII Detector\n(Presidio)"]
+            E["Semantic Similarity\n(sentence-transformers)"]
+        end
+        
+        F["Verdict Aggregator"]
+        G["Audit Logger\n(SQLite)"]
+    end
+
+    subgraph Backend
+        H[LLM API\nOpenAI / Local]
+    end
+
+    subgraph Monitoring
+        I["React Dashboard\n(Chart.js)"]
+        J["Red Team Runner\n(pytest + dataset)"]
+    end
+
+    A -->|"POST /v1/chat/completions"| B
+    B --> C
+    B --> D
+    B --> E
+    C --> F
+    D --> F
+    E --> F
+    F -->|"✓ Allow"| H
+    F -->|"✗ Block (403)"| A
+    H -->|"LLM Response"| A
+    F --> G
+    G --> I
+    G --> J
+
+    style C fill:#ef4444,color:#fff,stroke:#b91c1c
+    style D fill:#f59e0b,color:#fff,stroke:#d97706
+    style E fill:#8b5cf6,color:#fff,stroke:#7c3aed
+    style F fill:#3b82f6,color:#fff,stroke:#2563eb
+    style G fill:#06b6d4,color:#fff,stroke:#0891b2
+```
